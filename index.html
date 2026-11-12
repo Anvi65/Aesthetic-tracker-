@@ -1,0 +1,293 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>daylight.</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 25px 18px;
+  background: #ffffff;
+  font-family: Arial, sans-serif;
+  color: #6499c4;
+}
+
+.app {
+  max-width: 430px;
+  margin: auto;
+}
+
+.logo {
+  font-size: 27px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: #6499c4;
+}
+
+.subtitle {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #9bbbd5;
+  margin-top: 5px;
+}
+
+.header {
+  margin-top: 48px;
+}
+
+h1 {
+  font-size: 30px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #6499c4;
+}
+
+p {
+  color: #91b4d1;
+  line-height: 1.6;
+}
+
+.card {
+  background: #f3f8fc;
+  border-radius: 16px;
+  padding: 19px;
+  margin-top: 28px;
+}
+
+.section-title {
+  font-size: 17px;
+  color: #6499c4;
+  margin-top: 35px;
+  margin-bottom: 15px;
+}
+
+.progress {
+  height: 7px;
+  background: #dceaf5;
+  border-radius: 20px;
+  margin-top: 15px;
+  overflow: hidden;
+}
+
+#bar {
+  height: 100%;
+  width: 0%;
+  background: #82b4da;
+  transition: width .3s;
+}
+
+input[type=text] {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #dceaf5;
+  border-radius: 10px;
+  outline: none;
+  color: #6499c4;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+input::placeholder {
+  color: #a8c4dc;
+}
+
+button {
+  background: #83b4d9;
+  border: none;
+  color: white;
+  border-radius: 10px;
+  padding: 13px;
+  cursor: pointer;
+}
+
+.add {
+  width: 100%;
+}
+
+li {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 12px;
+  margin-bottom: 10px;
+  background: #f6f9fc;
+  border-radius: 11px;
+  font-size: 14px;
+}
+
+li span {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.done {
+  text-decoration: line-through;
+  opacity: .55;
+}
+
+.delete {
+  background: transparent;
+  color: #83aaca;
+  padding: 5px;
+}
+
+.quote {
+  text-align: center;
+  margin-top: 42px;
+  font-size: 14px;
+  color: #8bb3d4;
+  line-height: 1.8;
+}
+
+.small {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #aac5db;
+}
+
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<div class="logo">daylight.</div>
+<div class="subtitle">YOUR PERSONAL DAILY PLANNER</div>
+
+<div class="header">
+<h1>Hello, you.</h1>
+<p>Take it one step at a time. ♡</p>
+</div>
+
+<div class="card">
+<div style="display:flex;justify-content:space-between">
+<strong>Today's progress</strong>
+<strong id="percent">0%</strong>
+</div>
+
+<div class="progress">
+<div id="bar"></div>
+</div>
+
+<p id="count">0 tasks completed</p>
+</div>
+
+<h3 class="section-title">Add a task</h3>
+
+<input type="text" id="taskInput"
+placeholder="What would you like to do today?">
+
+<button class="add" onclick="addTask()">
++ Add task
+</button>
+
+<h3 class="section-title">My tasks</h3>
+
+<ul id="taskList"></ul>
+
+<div class="quote">
+"Small steps every day."
+
+<div class="small">
+YOU ARE DOING JUST FINE ♡
+</div>
+</div>
+
+</div>
+
+<script>
+
+let tasks = JSON.parse(
+localStorage.getItem("daylightTasks") || "[]"
+);
+
+function save() {
+localStorage.setItem(
+"daylightTasks",
+JSON.stringify(tasks)
+);
+}
+
+function addTask() {
+let input = document.getElementById("taskInput");
+let value = input.value.trim();
+
+if (!value) return;
+
+tasks.push({
+name: value,
+done: false
+});
+
+input.value = "";
+save();
+render();
+}
+
+function toggleTask(index) {
+tasks[index].done = !tasks[index].done;
+save();
+render();
+}
+
+function deleteTask(index) {
+tasks.splice(index, 1);
+save();
+render();
+}
+
+function render() {
+let list = document.getElementById("taskList");
+list.innerHTML = "";
+
+tasks.forEach((task, index) => {
+let li = document.createElement("li");
+
+let check = document.createElement("input");
+check.type = "checkbox";
+check.checked = task.done;
+check.onchange = () => toggleTask(index);
+
+let span = document.createElement("span");
+span.textContent = task.name;
+
+if (task.done) span.className = "done";
+
+let del = document.createElement("button");
+del.textContent = "×";
+del.className = "delete";
+del.onclick = () => deleteTask(index);
+
+li.append(check, span, del);
+list.appendChild(li);
+});
+
+let completed = tasks.filter(t => t.done).length;
+
+let percent = tasks.length
+? Math.round(completed / tasks.length * 100)
+: 0;
+
+document.getElementById("percent").textContent =
+percent + "%";
+
+document.getElementById("bar").style.width =
+percent + "%";
+
+document.getElementById("count").textContent =
+completed + " of " + tasks.length + " tasks completed";
+}
+
+render();
+
+</script>
+</body>
+  </html>
+  
